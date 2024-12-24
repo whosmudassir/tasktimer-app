@@ -1,74 +1,178 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+// /home/RoomTaskScreen.tsx
+import React, { useState } from "react";
+import { router } from "expo-router";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  Modal,
+  StyleSheet,
+  Alert,
+} from "react-native";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { formatDistanceToNow } from "date-fns";
+import { useAuthStore } from "@/store/authStore";
+import HorizontalScrollComponent from "@/components/ui/HorizontalScrollComponent";
+import TimeSlot from "@/components/ui/TimeSlot";
+import {
+  createNewTaskRoom,
+  getTasksInRoom,
+  getNextTaskForRoom,
+} from "../../api/taskRoomApi";
 
-export default function HomeScreen() {
+export default function RoomTaskScreen() {
+  const [rooms, setRooms] = useState<{ id: string; name: string }[]>([]); // Stores all rooms
+  const [modalVisible, setModalVisible] = useState(false); // Controls modal visibility
+  const [roomName, setRoomName] = useState(""); // Controls input value
+  const [currentRoom, setCurrentRoom] = useState({ name: "", id: "" });
+  const data = [
+    { name: "room name 1", id: "a" },
+    { name: "room name 1", id: "a" },
+    { name: "room name 1", id: "a" },
+    { name: "room name 1", id: "a" },
+    { name: "room name 1", id: "a" },
+    { name: "room name 1", id: "a" },
+    { name: "room name 1", id: "a" },
+    { name: "room name 1", id: "a" },
+    { name: "room name 1", id: "a" },
+  ];
+
+  const data2 = [
+    { name: "Task 1", startTime: 9, endTime: 11 },
+    { name: "Task 2", startTime: 9, endTime: 12 },
+    { name: "Task 3", startTime: 11, endTime: 13 },
+    { name: "Task 4", startTime: 14, endTime: 16 },
+  ];
+  // Room and Task Data
+  const { logout, isLoggedIn } = useAuthStore();
+  console.log("isLoggedIn::::::::::::::", isLoggedIn);
+
+  // Example of usage:
+  const roomId = "<room_id>";
+
+  const createRoom = async () => {
+    try {
+      const room = await createNewTaskRoom();
+      console.log("New Room Created:", room);
+      return room;
+    } catch (error) {
+      console.error("Error creating room:", error);
+    }
+  };
+
+  const handleAddRoom = async () => {
+    if (!roomName) {
+      Alert.alert("Error", "Please enter a room name");
+      return;
+    }
+
+    try {
+      const newRoom = await createRoom();
+      // Add the new room to the rooms state
+
+      setRooms((prevRooms) => [
+        ...prevRooms,
+        { id: newRoom.id, name: roomName },
+      ]);
+      // Close the modal and reset room name
+      setModalVisible(false);
+      setRoomName("");
+    } catch (error) {
+      Alert.alert("Error", "Could not create the room");
+    }
+  };
+
+  const fetchAllTasks = async () => {
+    try {
+      const tasks = await getTasksInRoom(roomId);
+      console.log("All Tasks in Room:", tasks);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
+  };
+
+  const fetchNextTask = async () => {
+    try {
+      const nextTask = await getNextTaskForRoom(roomId);
+      console.log("Next Task:", nextTask);
+    } catch (error) {
+      console.error("Error fetching next task:", error);
+    }
+  };
+
+  const handleSelectRoom = (room) => {
+    setCurrentRoom(room);
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <>
+      {/* Create Room Section */}
+      <Text style={{ marginTop: 50 }}>Room</Text>
+      <Button title="Add Room" onPress={() => setModalVisible(true)} />
+      <HorizontalScrollComponent
+        data={rooms}
+        onPress={handleSelectRoom}
+        selectedRoom={currentRoom.id}
+      />
+      <Text>Current Room: {currentRoom.name}</Text>
+      <Text>Current ID: {currentRoom.id}</Text>
+
+      {/* Create Task Section */}
+      <Text>-----Tasks List------</Text>
+      <TimeSlot roomId={currentRoom.id} />
+
+      {/* Modal to Add Room */}
+      <Modal visible={modalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Enter Room Name</Text>
+            <TextInput
+              style={styles.input}
+              value={roomName}
+              onChangeText={setRoomName}
+              placeholder="Room Name"
+            />
+            <Button title="Add" onPress={handleAddRoom} />
+            <Button title="Cancel" onPress={() => setModalVisible(false)} />
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  modalContainer: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 10,
+    width: "80%",
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 15,
+  },
+  input: {
+    width: "100%",
+    padding: 10,
+    marginBottom: 20,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 5,
   },
 });
