@@ -1,7 +1,9 @@
 import { create } from "zustand";
 import * as SecureStore from "expo-secure-store";
+import { jwtDecode } from "jwt-decode"; // For decoding JWT tokens
 import { loginUser, refreshToken } from "../../api/authApi";
-import { router, Stack } from "expo-router";
+import { router } from "expo-router";
+
 interface AuthState {
   isLoggedIn: boolean;
   token: string | null;
@@ -18,10 +20,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   login: async (username, password) => {
     try {
-      const data = await loginUser(username, password);
-      console.log("logged in data:::", data);
-      await SecureStore.setItemAsync("authToken", data.access_token); // Store access token
-      await SecureStore.setItemAsync("refreshToken", data.refresh_token); // Store refresh token
+      const data = await loginUser(username, password); // API call
+      console.log("Logged in data:::", data);
+
+      await SecureStore.setItemAsync("authToken", data.access_token);
+      await SecureStore.setItemAsync("refreshToken", data.refresh_token);
 
       set({
         isLoggedIn: true,
@@ -30,6 +33,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
     } catch (error) {
       console.error("Login failed:", error);
+      throw error; // Propagate error to the calling function
     }
   },
 
@@ -49,26 +53,55 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const storedRefreshToken = await SecureStore.getItemAsync("refreshToken");
 
       console.log("::::storedToken", storedToken, storedRefreshToken);
+
       if (storedToken && storedRefreshToken) {
-        // Optionally try refreshing the token with the refresh token
-        try {
-          await refreshToken(storedRefreshToken);
-          router.replace("(tabs)");
+        // Decode and validate the access token
+        const decodedAccessToken = jwtDecode(storedToken);
+        console.log(":::decodedAccessToken::", decodedAccessToken);
+        const isTokenExpired =
+          decodedAccessToken.exp * 1000 < new Date().getTime();
+        console.log("isTokenExpired::", isTokenExpired, decodedAccessToken.exp);
+        if (isTokenExpired) {
+          // If the access token is expired, attempt to refresh it
+          try {
+            const refreshedTokenData = await refreshToken(storedRefreshToken);
+            // Save the new tokens securely
+            await SecureStore.setItemAsync(
+              "authToken",
+              refreshedTokenData.access_token
+            );
+            await SecureStore.setItemAsync(
+              "refreshToken",
+              refreshedTokenData.refresh_token
+            );
+
+            set({
+              isLoggedIn: true,
+              token: refreshedTokenData.access_token,
+              refreshToken: refreshedTokenData.refresh_token,
+            });
+            // router.replace("(tabs)"); // Navigate to the main screen
+          } catch (error) {
+            console.error("Token refresh failed:", error);
+            set({ isLoggedIn: false });
+          }
+        } else {
+          // If the token is still valid, set the user as logged in
           set({
             isLoggedIn: true,
             token: storedToken,
             refreshToken: storedRefreshToken,
           });
-        } catch (error) {
-          console.error("Token refresh failed:", error);
-          set({ isLoggedIn: false });
+          // router.replace("(tabs)"); // Navigate to the main screen
         }
       } else {
         set({ isLoggedIn: false });
+        router.replace("/login"); // Navigate to login screen if no tokens
       }
     } catch (error) {
       console.error("Error initializing auth:", error);
       set({ isLoggedIn: false });
+      router.replace("/login"); // Navigate to login screen on error
     }
   },
 }));

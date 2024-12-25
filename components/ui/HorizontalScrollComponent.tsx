@@ -46,6 +46,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
+    minWidth: 110,
+    borderWidth: 1, // Thickness of the border
+    borderColor: "#ccc", //
   },
   dimmedItem: {
     opacity: 0.5, // Dim the non-selected items

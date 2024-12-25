@@ -4,7 +4,7 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { router, Stack } from "expo-router";
+import { router, Slot, Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
@@ -57,19 +57,8 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       {/* File-based routing Stack */}
-      <Stack>
-        {/* Ensure routes are defined */}
-        <Stack.Screen
-          name="/login"
-          options={{ headerShown: false, title: "Login" }}
-        />
-        <Stack.Screen
-          name="(tabs)"
-          options={{ headerShown: false, title: "Profile" }}
-        />
-        <Stack.Screen name="not-found" options={{ title: "Not Found" }} />
-      </Stack>
-      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+
+      <Slot />
     </ThemeProvider>
   );
 }
