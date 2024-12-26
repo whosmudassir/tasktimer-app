@@ -5,7 +5,7 @@
 1. **Clone the Repository:**
 
    ```bash
-   git clone <repo-url>
+   git clone https://github.com/whosmudassir/tasktimer-app
    cd <project-directory> `
 
    ```
@@ -26,7 +26,7 @@
 
    Copy code
 
-   `npm start`
+   `npm run start`
 
    This will open Expo DevTools. You can scan the QR code with the Expo Go app or press `i` for iOS simulator and `a` for Android emulator.
 
