@@ -129,6 +129,9 @@ const TaskSection: React.FC<TaskSectionProps> = ({ roomId }) => {
             renderItem={renderItem}
             keyExtractor={(item) => item.id}
             extraData={tasks}
+            initialNumToRender={10}
+            maxToRenderPerBatch={10}
+            windowSize={10}
           />
           <View style={styles.addTaskButton}>
             <TouchableOpacity

@@ -60,6 +60,9 @@
     - Task title
     - Two action buttons: "Done" and "Skip"
     - Both buttons dismiss the notification.
+  - _Optimization_:
+    - Utilize `async-storage` to avoid unnecessary API calls and enhance performance.
+    - Implement FlatList optimization techniques, such as virtualization, to improve rendering efficiency and reduce memory consumption.
 
 - **Code Quality**:
 

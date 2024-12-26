@@ -39,8 +39,11 @@ const HorizontalScrollComponent: FC<HorizontalScrollComponentProps> = ({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
         renderItem={renderItem}
-        // Optimize performance by memoizing FlatList rendering
         extraData={selectedRoom}
+        initialNumToRender={5}
+        maxToRenderPerBatch={5}
+        windowSize={5}
+        removeClippedSubviews={true}
       />
     </View>
   );
