@@ -13,11 +13,11 @@ import { useNotifications } from "@/hooks/useNotification";
 import commonStyles from "@/styles/commonStyles";
 import { Task } from "@/types";
 
-interface TimeSlotProps {
+interface TaskSectionProps {
   roomId: string;
 }
 
-const TimeSlot: React.FC<TimeSlotProps> = ({ roomId }) => {
+const TaskSection: React.FC<TaskSectionProps> = ({ roomId }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isFetching, setIsFetching] = useState<boolean>(false);
   const { scheduleNotification } = useNotifications();
@@ -112,18 +112,15 @@ const TimeSlot: React.FC<TimeSlotProps> = ({ roomId }) => {
   }, [roomId, tasks]);
 
   // Render each task in the FlatList
-  const renderItem = useCallback(
-    ({ item }: { item: Task }) => {
-      const startTime = new Date(item.starts_at).toLocaleTimeString();
-      return (
-        <View style={styles.taskItem}>
-          <Text style={styles.title}>{item.title}</Text>
-          <Text style={styles.startTime}>Starts at: {startTime}</Text>
-        </View>
-      );
-    },
-    [] // Only need to re-render when tasks change
-  );
+  const renderItem = useCallback(({ item }: { item: Task }) => {
+    const startTime = new Date(item.starts_at).toLocaleTimeString();
+    return (
+      <View style={styles.taskItem}>
+        <Text style={styles.title}>{item.title}</Text>
+        <Text style={styles.startTime}>Starts at: {startTime}</Text>
+      </View>
+    );
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -134,7 +131,7 @@ const TimeSlot: React.FC<TimeSlotProps> = ({ roomId }) => {
             data={tasks}
             renderItem={renderItem}
             keyExtractor={(item) => item.id}
-            extraData={tasks} // Optimize re-renders by tracking task changes
+            extraData={tasks}
           />
           <View style={styles.addTaskButton}>
             <TouchableOpacity
@@ -191,4 +188,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default React.memo(TimeSlot);
+export default React.memo(TaskSection);

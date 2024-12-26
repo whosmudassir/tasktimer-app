@@ -20,28 +20,22 @@ import { MaterialIcons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useAuthStore } from "@/store/authStore";
 import HorizontalScrollComponent from "@/components/ui/HorizontalScrollComponent";
-import TimeSlot from "@/components/ui/TimeSlot";
-import {
-  createNewTaskRoom,
-  getTasksInRoom,
-  getNextTaskForRoom,
-} from "../../api/taskRoomApi";
+import TaskSection from "../../components/ui/TaskSection";
+import { createNewTaskRoom } from "../../api/taskRoomApi";
 import EmptyState from "@/components/ui/EmptyState";
 import commonStyles from "@/styles/commonStyles";
 
 import { Room } from "@/types";
 
 export default function RoomTaskScreen(): JSX.Element {
-  const [rooms, setRooms] = useState<Room[]>([]); // Array of rooms
-  const [modalVisible, setModalVisible] = useState<boolean>(false); // Modal visibility
-  const [roomName, setRoomName] = useState<string>(""); // Room name input
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [roomName, setRoomName] = useState<string>("");
   const [currentRoom, setCurrentRoom] = useState<Room>({
     name: "",
     id: "",
-  }); // Current selected room
-  const { logout, isLoggedIn } = useAuthStore(); // Auth store methods
+  });
 
-  // Function to create a new room
   const createRoom = async (): Promise<Room | undefined> => {
     try {
       const room = await createNewTaskRoom();
@@ -91,7 +85,7 @@ export default function RoomTaskScreen(): JSX.Element {
           {/* App Title */}
           <View style={commonStyles.logoContainer}>
             <Image
-              source={require("../../assets/images/TaskTimer.png")} // Path to your logo file
+              source={require("../../assets/images/TaskTimer.png")}
               style={commonStyles.logo}
             />
           </View>
@@ -125,7 +119,7 @@ export default function RoomTaskScreen(): JSX.Element {
                 </View>
 
                 {/* Tasks Section */}
-                <TimeSlot roomId={currentRoom.id} />
+                <TaskSection roomId={currentRoom.id} />
               </View>
             </>
           ) : (
@@ -168,14 +162,14 @@ export default function RoomTaskScreen(): JSX.Element {
                         style={[
                           commonStyles.button,
                           { flex: 1, marginRight: 10 },
-                        ]} // Add flex and margin to space buttons
+                        ]}
                         onPress={handleAddRoom}
                       >
                         <Text style={commonStyles.buttonText}>Add</Text>
                       </TouchableOpacity>
 
                       <TouchableOpacity
-                        style={[commonStyles.button, { flex: 1 }]} // Add flex to make the button take equal width
+                        style={[commonStyles.button, { flex: 1 }]}
                         onPress={() => setModalVisible(false)}
                       >
                         <Text style={commonStyles.buttonText}>Cancel</Text>
@@ -215,12 +209,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: "#ffffff", // White background
+    backgroundColor: "#ffffff",
   },
   taskHeaderSection: {
     paddingBottom: 8,
-    borderBottomWidth: 1, // Thickness of the border
-    borderBottomColor: "#ccc", // Light grey border color
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
   },
   taskSection: {
     backgroundColor: "#fff",
@@ -230,9 +224,9 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     borderWidth: 1,
     borderColor: "#ccc",
-    flex: 1, // Allow it to take available space
-    maxHeight: "100%", // Prevent it from exceeding the screen height
-    justifyContent: "flex-start", // Align content inside properly
+    flex: 1,
+    maxHeight: "100%",
+    justifyContent: "flex-start",
   },
   addRoomButton: {
     flexDirection: "row",
