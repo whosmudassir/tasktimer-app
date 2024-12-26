@@ -48,6 +48,8 @@
   - Authentication tokens are securely stored using `expo-secure-store`.
   - Proper handling of authentication errors.
   - The app checks for valid tokens on launch and uses refresh tokens for maintaining session.
+  - _Bonus_:
+    - The apps also has refresh token functionality.
 
 - **Task Management**:
 
