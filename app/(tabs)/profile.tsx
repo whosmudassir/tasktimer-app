@@ -12,12 +12,12 @@ import {
   Platform,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context"; // Import for safe area
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import commonStyles from "@/styles/commonStyles";
 import { useAuthStore } from "@/store/authStore";
 
 export default function ProfileScreen() {
-  const insets = useSafeAreaInsets(); // Use to get safe area insets
+  const insets = useSafeAreaInsets();
   const { logout, isLoggedIn } = useAuthStore();
   const openLink = (url: string) => {
     Linking.openURL(url);
@@ -35,7 +35,7 @@ export default function ProfileScreen() {
           {/* App Title */}
           <View style={commonStyles.logoContainer}>
             <Image
-              source={require("../../assets/images/TaskTimer.png")} // Path to your logo file
+              source={require("../../assets/images/TaskTimer.png")}
               style={commonStyles.logo}
             />
           </View>
@@ -70,7 +70,7 @@ export default function ProfileScreen() {
 
           {/* Logout Button */}
           <TouchableOpacity
-            style={[styles.logoutButton, { marginBottom: insets.bottom + 20 }]} // Add margin to prevent overlap
+            style={[styles.logoutButton, { marginBottom: insets.bottom + 20 }]}
             onPress={logout}
           >
             <Text style={styles.logoutButtonText}>Logout</Text>
@@ -86,10 +86,10 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: "#fff",
-    justifyContent: "space-between", // Distribute content with space between
+    justifyContent: "space-between",
   },
   logoContainer: {
-    alignItems: "center", // Center align the logo
+    alignItems: "center",
     marginBottom: 20,
   },
   logo: {
