@@ -12,19 +12,12 @@
 
 1. **Install Dependencies:**
 
-   bash
-
-   Copy code
 
    `npm install`
 
 1. **Run the App:**
 
    For development, run the following command:
-
-   bash
-
-   Copy code
 
    `npm run start`
 
