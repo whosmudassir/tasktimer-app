@@ -45,17 +45,19 @@ export default function ProfileScreen() {
 
           {/* GitHub Link */}
           <TouchableOpacity
-            onPress={() => openLink("https://github.com/your-project-link")}
+            onPress={() =>
+              openLink("https://github.com/whosmudassir/tasktimer-app")
+            }
           >
             <Text style={styles.link}>
               <MaterialIcons name="link" size={20} color="black" /> GitHub
-              Project
+              Project Repo
             </Text>
           </TouchableOpacity>
 
           {/* Developer Portfolio Link */}
           <TouchableOpacity
-            onPress={() => openLink("https://your-portfolio-link.com")}
+            onPress={() => openLink("https://whosmudassir.vercel.app/")}
           >
             <Text style={styles.link}>
               <MaterialIcons name="link" size={20} color="black" /> Developer
