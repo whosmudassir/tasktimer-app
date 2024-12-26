@@ -31,7 +31,6 @@ const TaskSection: React.FC<TaskSectionProps> = ({ roomId }) => {
         if (cachedTasks) {
           setTasks(JSON.parse(cachedTasks));
         } else {
-          console.log(":::fetching data from API:::");
           await fetchTasks();
         }
       } catch (error) {
@@ -74,7 +73,7 @@ const TaskSection: React.FC<TaskSectionProps> = ({ roomId }) => {
       setTasks(data);
 
       await AsyncStorage.setItem(`tasks_${roomId}`, JSON.stringify(data));
-      console.log("::::tasks", data);
+
       setIsFetching(false);
     } catch (error) {
       console.log("Error fetching tasks:", error);
@@ -94,7 +93,6 @@ const TaskSection: React.FC<TaskSectionProps> = ({ roomId }) => {
         );
         return updatedTasks;
       });
-      console.log("::::newtasks", newTask);
 
       await AsyncStorage.setItem(
         `tasks_${roomId}`,
@@ -102,7 +100,6 @@ const TaskSection: React.FC<TaskSectionProps> = ({ roomId }) => {
       );
 
       const totalSeconds = convertToSeconds(newTask.starts_in);
-      console.log("::totalSeconds:", totalSeconds);
 
       // Schedule notification for the new task
       handleScheduleNotification(newTask.title, totalSeconds);
