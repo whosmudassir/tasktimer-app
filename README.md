@@ -1,4 +1,4 @@
-# **TaskTimer - React Native App**
+`# **TaskTimer - React Native App**
 
 ## **Setup Instructions**
 
@@ -6,11 +6,69 @@
 
    ```bash
    git clone <repo-url>
-   cd <project-directory>
+   cd <project-directory> `
+
    ```
 
-2. **Assumptions made:**
+1. **Install Dependencies:**
 
-3. **Technical decisions:**
+   bash
 
-4. **Screen Recording:**
+   Copy code
+
+   `npm install`
+
+1. **Run the App:**
+
+   For development, run the following command:
+
+   bash
+
+   Copy code
+
+   `npm start`
+
+   This will open Expo DevTools. You can scan the QR code with the Expo Go app or press `i` for iOS simulator and `a` for Android emulator.
+
+---
+
+## **Assumptions Made:**
+
+- UI handling for scenarios when there is no room or task.
+- Proper logout flow is implemented.
+- Room name addition feature is included.
+
+---
+
+## **Technical Decisions:**
+
+- **Login Flow**:
+
+  - The app includes a login form with username and password fields.
+  - Authentication tokens are securely stored using `expo-secure-store`.
+  - Proper handling of authentication errors.
+  - The app checks for valid tokens on launch and uses refresh tokens for maintaining session.
+
+- **Task Management**:
+
+  - The "Get Next Task" button is placed at the bottom of the screen.
+  - Task details such as title and start time are displayed.
+  - Local notifications are scheduled based on the `starts_in` duration.
+  - Notifications display:
+    - Task title
+    - Two action buttons: "Done" and "Skip"
+    - Both buttons dismiss the notification.
+
+- **Code Quality**:
+
+  - TypeScript is strictly used for type safety.
+  - Error handling and loading states are implemented for smoother user experience.
+  - UI/UX considerations are made, ensuring the app is responsive and intuitive.
+
+---
+
+## **Screen Recording:**
+
+Here is the screen recording of the working app:
+
+[Watch the screen recording](https://vimeo.com/1042218093)
