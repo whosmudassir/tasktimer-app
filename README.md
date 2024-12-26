@@ -1,4 +1,4 @@
-`# **TaskTimer - React Native App**
+# **TaskTimer - React Native App**
 
 ## **Setup Instructions**
 
@@ -6,7 +6,7 @@
 
    ```bash
    git clone https://github.com/whosmudassir/tasktimer-app
-   cd <project-directory> `
+   cd <project-directory>
 
    ```
 
