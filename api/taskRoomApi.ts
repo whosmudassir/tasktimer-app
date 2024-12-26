@@ -59,8 +59,6 @@ export const getNextTaskForRoom = async (roomId: string) => {
     console.log("Next Task for Room:", response.data);
     return response.data; // Returns the next task object
   } catch (error) {
-    throw new Error(
-      error.response?.data?.message || "Failed to fetch next task"
-    );
+    throw new Error(error);
   }
 };

@@ -52,7 +52,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const storedToken = await SecureStore.getItemAsync("authToken");
       const storedRefreshToken = await SecureStore.getItemAsync("refreshToken");
 
-      console.log("::::storedToken", storedToken, storedRefreshToken);
+      console.log("::::storedToken", storedToken);
 
       if (storedToken && storedRefreshToken) {
         // Decode and validate the access token

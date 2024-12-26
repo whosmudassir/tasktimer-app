@@ -39,9 +39,7 @@ export default function TabLayout() {
               color={focused ? "#ff5757" : "#bbb"} // Active color for focused, gray for inactive
             />
           ),
-          tabBarLabel: ({ focused }) => (
-            <Text style={{ color: focused ? "#ff5757" : "#bbb" }}>Home</Text> // Change label color based on focus
-          ),
+          tabBarLabel: () => null, // Removes the label from the tab
         }}
       />
       <Tabs.Screen
@@ -55,9 +53,7 @@ export default function TabLayout() {
               color={focused ? "#ff5757" : "#bbb"} // Active color for focused, gray for inactive
             />
           ),
-          tabBarLabel: ({ focused }) => (
-            <Text style={{ color: focused ? "#ff5757" : "#bbb" }}>Profile</Text> // Change label color based on focus
-          ),
+          tabBarLabel: () => null, // Removes the label from the tab
         }}
       />
     </Tabs>

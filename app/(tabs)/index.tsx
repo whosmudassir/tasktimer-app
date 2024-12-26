@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,9 @@ import {
   Alert,
   TouchableOpacity,
   FlatList,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
@@ -26,142 +29,166 @@ import {
 import EmptyState from "@/components/ui/EmptyState";
 import commonStyles from "@/styles/commonStyles";
 
-export default function RoomTaskScreen() {
-  const [rooms, setRooms] = useState([]);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [roomName, setRoomName] = useState("");
-  const [currentRoom, setCurrentRoom] = useState({ name: "", id: "" });
-  const { logout, isLoggedIn } = useAuthStore();
+import { Room } from "@/types";
 
-  const createRoom = async () => {
+export default function RoomTaskScreen(): JSX.Element {
+  const [rooms, setRooms] = useState<Room[]>([]); // Array of rooms
+  const [modalVisible, setModalVisible] = useState<boolean>(false); // Modal visibility
+  const [roomName, setRoomName] = useState<string>(""); // Room name input
+  const [currentRoom, setCurrentRoom] = useState<Room>({
+    name: "",
+    id: "",
+  }); // Current selected room
+  const { logout, isLoggedIn } = useAuthStore(); // Auth store methods
+
+  // Function to create a new room
+  const createRoom = async (): Promise<Room | undefined> => {
     try {
       const room = await createNewTaskRoom();
       return room;
     } catch (error) {
       console.error("Error creating room:", error);
+      return undefined;
     }
   };
 
-  const handleAddRoom = async () => {
+  // Handle the room creation
+  const handleAddRoom = async (): Promise<void> => {
     if (!roomName) {
       Alert.alert("Error", "Please enter a room name");
       return;
     }
     try {
       const newRoom = await createRoom();
-      setRooms((prevRooms) => [
-        ...prevRooms,
-        { id: newRoom?.id, name: roomName },
-      ]);
-      setModalVisible(false);
-      setCurrentRoom({ id: newRoom?.id, name: roomName });
-      setRoomName("");
+      if (newRoom) {
+        setRooms((prevRooms) => [
+          ...prevRooms,
+          { id: newRoom?.id, name: roomName },
+        ]);
+        setModalVisible(false);
+        setCurrentRoom({ id: newRoom?.id, name: roomName });
+        setRoomName("");
+      }
     } catch (error) {
       Alert.alert("Error", "Could not create the room");
     }
   };
 
-  const handleSelectRoom = (room) => {
+  // Select room handler
+  const handleSelectRoom = (room: Room): void => {
     setCurrentRoom(room);
   };
 
   return (
-    <View style={styles.container}>
-      {/* Room Section */}
+    <SafeAreaView style={{ flex: 1 }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <View style={styles.container}>
+          {/* Room Section */}
 
-      {/* App Title */}
-      <View style={commonStyles.logoContainer}>
-        <Image
-          source={require("../../assets/images/TaskTimer.png")} // Path to your logo file
-          style={commonStyles.logo}
-        />
-      </View>
-
-      {rooms.length > 0 ? (
-        <>
-          {/* Rooms Section */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionHeaderTitle}>Rooms</Text>
-            <TouchableOpacity onPress={() => setModalVisible(true)}>
-              <MaterialIcons name="add" size={24} color="#ff5757" />
-            </TouchableOpacity>
+          {/* App Title */}
+          <View style={commonStyles.logoContainer}>
+            <Image
+              source={require("../../assets/images/TaskTimer.png")} // Path to your logo file
+              style={commonStyles.logo}
+            />
           </View>
-          <HorizontalScrollComponent
-            data={rooms}
-            onPress={handleSelectRoom}
-            selectedRoom={currentRoom.id}
-          />
 
-          <View style={styles.taskSection}>
-            {/* Current Room Info */}
-            <View style={styles.taskHeaderSection}>
-              <Text style={styles.currentRoomText}>
-                <FontAwesome name="group" size={20} color="black" />
-                {"  "}
-                {currentRoom.name || "None"}
-              </Text>
-              <Text style={styles.currentIdText}>
-                # {currentRoom.id || "None"}
-              </Text>
-            </View>
+          {rooms.length > 0 ? (
+            <>
+              {/* Rooms Section */}
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionHeaderTitle}>Rooms</Text>
+                <TouchableOpacity onPress={() => setModalVisible(true)}>
+                  <MaterialIcons name="add" size={24} color="#ff5757" />
+                </TouchableOpacity>
+              </View>
+              <HorizontalScrollComponent
+                data={rooms}
+                onPress={handleSelectRoom}
+                selectedRoom={currentRoom.id}
+              />
 
-            {/* Tasks Section */}
-
-            <TimeSlot roomId={currentRoom.id} />
-          </View>
-        </>
-      ) : (
-        <EmptyState
-          title="No Rooms Available"
-          description=" Create a room to start managing tasks. Once you create a room, you can
-        view and create tasks within it."
-          actionButton={{
-            title: "Create Room",
-            onPress: () => setModalVisible(true),
-          }}
-        />
-      )}
-
-      {/* Modal for Adding Room */}
-      <Modal visible={modalVisible} animationType="slide" transparent={true}>
-        <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
-          <View style={styles.modalOverlay}>
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-              <View style={styles.modalContainer}>
-                <Text style={styles.modalTitle}>Enter Room Name</Text>
-                <TextInput
-                  style={[
-                    styles.input,
-                    roomName.length < 0 && styles.inputError,
-                  ]}
-                  value={roomName}
-                  onChangeText={setRoomName}
-                  placeholder="Room Name"
-                />
-                {roomName.length < 0 && (
-                  <Text style={styles.errorText}>Name is required</Text>
-                )}
-                <View style={styles.modalButtonGroup}>
-                  <TouchableOpacity
-                    style={commonStyles.button}
-                    onPress={handleAddRoom}
-                  >
-                    <Text style={commonStyles.buttonText}>Add</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={commonStyles.button}
-                    onPress={() => setModalVisible(false)}
-                  >
-                    <Text style={commonStyles.buttonText}>Cancel</Text>
-                  </TouchableOpacity>
+              <View style={styles.taskSection}>
+                {/* Current Room Info */}
+                <View style={styles.taskHeaderSection}>
+                  <Text style={styles.currentRoomText}>
+                    <FontAwesome name="group" size={20} color="black" />
+                    {"  "}
+                    {currentRoom.name || "None"}
+                  </Text>
+                  <Text style={styles.currentIdText}>
+                    # {currentRoom.id || "None"}
+                  </Text>
                 </View>
+
+                {/* Tasks Section */}
+                <TimeSlot roomId={currentRoom.id} />
+              </View>
+            </>
+          ) : (
+            <EmptyState
+              title="No Rooms Available"
+              description=" Create a room to start managing tasks. Once you create a room, you can
+            view and create tasks within it."
+              actionButton={{
+                title: "Create Room",
+                onPress: () => setModalVisible(true),
+              }}
+            />
+          )}
+
+          {/* Modal for Adding Room */}
+          <Modal
+            visible={modalVisible}
+            animationType="slide"
+            transparent={true}
+          >
+            <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+              <View style={styles.modalOverlay}>
+                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                  <View style={styles.modalContainer}>
+                    <Text style={styles.modalTitle}>Enter Room Name</Text>
+                    <TextInput
+                      style={[
+                        styles.input,
+                        roomName.length < 0 && styles.inputError,
+                      ]}
+                      value={roomName}
+                      onChangeText={setRoomName}
+                      placeholder="Room Name"
+                    />
+                    {roomName.length < 0 && (
+                      <Text style={styles.errorText}>Name is required</Text>
+                    )}
+                    <View style={styles.modalButtonGroup}>
+                      <TouchableOpacity
+                        style={[
+                          commonStyles.button,
+                          { flex: 1, marginRight: 10 },
+                        ]} // Add flex and margin to space buttons
+                        onPress={handleAddRoom}
+                      >
+                        <Text style={commonStyles.buttonText}>Add</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[commonStyles.button, { flex: 1 }]} // Add flex to make the button take equal width
+                        onPress={() => setModalVisible(false)}
+                      >
+                        <Text style={commonStyles.buttonText}>Cancel</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </TouchableWithoutFeedback>
               </View>
             </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
-    </View>
+          </Modal>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -177,12 +204,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
     paddingHorizontal: 16,
+    marginTop: 5,
   },
   sectionHeaderTitle: {
     fontSize: 24,
     fontWeight: "bold",
+    fontStyle: "italic",
   },
   container: {
     flex: 1,
@@ -195,15 +223,17 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ccc", // Light grey border color
   },
   taskSection: {
-    backgroundColor: "#fff", // Dark grey background
-    padding: 15, // Add some padding inside the section
-    borderRadius: 10, // Smooth rounded corners
-    margin: 10, // Add space around the section
-    flex: 1,
-    borderWidth: 1, // Thickness of the border
-    borderColor: "#ccc", //
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 10,
+    marginHorizontal: 2,
+    marginBottom: 40,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    flex: 1, // Allow it to take available space
+    maxHeight: "100%", // Prevent it from exceeding the screen height
+    justifyContent: "flex-start", // Align content inside properly
   },
-
   addRoomButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -221,13 +251,11 @@ const styles = StyleSheet.create({
   currentRoomText: {
     fontSize: 18,
     color: "black",
-    // textAlign: "center",
     marginTop: 4,
   },
   currentIdText: {
     fontSize: 13,
     color: "gray",
-    // textAlign: "center",
     marginVertical: 4,
     fontStyle: "italic",
   },
@@ -267,7 +295,8 @@ const styles = StyleSheet.create({
   },
   modalButtonGroup: {
     flexDirection: "row",
-    justifyContent: "space-around",
+    justifyContent: "flex-end",
     width: "100%",
+    marginTop: 10,
   },
 });

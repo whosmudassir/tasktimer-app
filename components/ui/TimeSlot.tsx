@@ -1,83 +1,28 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, Button, StyleSheet, Alert } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getTasksInRoom, getNextTaskForRoom } from "../../api/taskRoomApi"; // Importing the functions from your apiFunctions file
-import * as Notifications from "expo-notifications"; // Importing expo-notifications
+import { getTasksInRoom, getNextTaskForRoom } from "../../api/taskRoomApi";
 import EmptyState from "./EmptyState";
+import { useNotifications } from "@/hooks/useNotification";
+import commonStyles from "@/styles/commonStyles";
+import { Task } from "@/types";
 
-// Function to schedule the notification
-// Function to schedule the notification
+interface TimeSlotProps {
+  roomId: string;
+}
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+const TimeSlot: React.FC<TimeSlotProps> = ({ roomId }) => {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [isFetching, setIsFetching] = useState<boolean>(false);
+  const { scheduleNotification } = useNotifications();
 
-const scheduleTaskNotification = async (task) => {
-  try {
-    const { minutes, seconds } = task.starts_in;
-    const delayInMilliseconds = (minutes * 60 + seconds) * 1000;
-
-    const content = {
-      title: task.title,
-      body: `Your task "${task.title}" is starting soon!`,
-      data: { taskId: task.id }, // Send task ID as data
-      android: {
-        priority: "high", // High priority for Android to show immediately
-      },
-    };
-
-    const actions = [
-      {
-        actionId: "done",
-        buttonTitle: "Done",
-        buttonStyle: {
-          color: "#32CD32", // Green color for "Done"
-        },
-      },
-      {
-        actionId: "skip",
-        buttonTitle: "Skip",
-        buttonStyle: {
-          color: "#FF6347", // Red color for "Skip"
-        },
-      },
-    ];
-
-    // Schedule the notification with the corrected trigger type
-    Notifications.scheduleNotificationAsync({
-      content,
-      trigger: {
-        type: "timeInterval", // Specify the type
-        seconds: delayInMilliseconds / 1000, // Convert to seconds
-      },
-      categoryIdentifier: "task-actions", // Set category for actions
-    });
-
-    // Notifications.scheduleNotificationAsync({
-    //   content: {
-    //     title: "Look at that notification",
-    //     body: "I'm so proud of myself!",
-    //   },
-    //   trigger: null,
-    // });
-
-    // Create the notification category with actions
-    // await Notifications.setNotificationCategoryAsync("task-actions", actions);
-
-    console.log("Task notification scheduled successfully!");
-  } catch (error) {
-    console.error("Error scheduling notification:", error);
-  }
-};
-
-const TimeSlot = ({ roomId }) => {
-  const [tasks, setTasks] = useState([]);
-  const [isFetching, setIsFetching] = useState(false);
-
+  // Fetch data from AsyncStorage or API
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -86,18 +31,40 @@ const TimeSlot = ({ roomId }) => {
         if (cachedTasks) {
           setTasks(JSON.parse(cachedTasks));
         } else {
-          console.log(":::fetching data from api:::");
+          console.log(":::fetching data from API:::");
           await fetchTasks();
         }
       } catch (error) {
-        Alert.alert("Error", "Could not fetch the tasks");
+        console.log("Error fetching tasks:", error);
       }
     };
 
     fetchData();
   }, [roomId]);
 
-  // Fetch tasks from API and store in cache using getTasksInRoom
+  // Convert start_in object to total seconds
+  function convertToSeconds(starts_in: {
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+  }): number {
+    const { days, hours, minutes, seconds } = starts_in;
+    return days * 86400 + hours * 3600 + minutes * 60 + seconds;
+  }
+
+  // Handle scheduling a notification
+  const handleScheduleNotification = async (title: string, seconds: number) => {
+    const content = {
+      title: title,
+      body: "Choose an option below:",
+      categoryIdentifier: "user-actions",
+    };
+
+    await scheduleNotification(content, seconds);
+  };
+
+  // Fetch tasks from the API
   const fetchTasks = async () => {
     if (isFetching) return;
     setIsFetching(true);
@@ -106,55 +73,57 @@ const TimeSlot = ({ roomId }) => {
       const data = await getTasksInRoom(roomId);
       setTasks(data);
 
-      // Cache the fetched tasks
       await AsyncStorage.setItem(`tasks_${roomId}`, JSON.stringify(data));
-
-      // Schedule notifications for each task
-      //   data.forEach((task) => {
-      //     scheduleTaskNotification(task); // Schedule notification for each task
-      //   });
-
+      console.log("::::tasks", data);
       setIsFetching(false);
     } catch (error) {
-      Alert.alert("Error", "Could not fetch tasks");
+      console.log("Error fetching tasks:", error);
       setIsFetching(false);
     }
   };
 
-  // Fetch the next task for the room using getNextTaskForRoom
-  const fetchNextTask = async () => {
+  // Fetch the next task and add it to the list
+  const fetchNextTask = useCallback(async () => {
     try {
       const newTask = await getNextTaskForRoom(roomId);
       setTasks((prevTasks) => {
         const updatedTasks = [...prevTasks, newTask];
         updatedTasks.sort(
-          (a, b) => new Date(a.starts_at) - new Date(b.starts_at)
+          (a, b) =>
+            new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime()
         );
         return updatedTasks;
       });
+      console.log("::::newtasks", newTask);
 
-      // Update cache with the new task
       await AsyncStorage.setItem(
         `tasks_${roomId}`,
         JSON.stringify([...tasks, newTask])
       );
 
-      // Schedule notification for the new task
-      // scheduleTaskNotification(newTask);
-    } catch (error) {
-      Alert.alert("Error", "Could not fetch the next task");
-    }
-  };
+      const totalSeconds = convertToSeconds(newTask.starts_in);
+      console.log("::totalSeconds:", totalSeconds);
 
-  const renderItem = ({ item }) => {
-    const startTime = new Date(item.starts_at).toLocaleTimeString();
-    return (
-      <View style={styles.taskItem}>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.startTime}>Starts at: {startTime}</Text>
-      </View>
-    );
-  };
+      // Schedule notification for the new task
+      handleScheduleNotification(newTask.title, totalSeconds);
+    } catch (error) {
+      console.log("Error fetching the next task:", error);
+    }
+  }, [roomId, tasks]);
+
+  // Render each task in the FlatList
+  const renderItem = useCallback(
+    ({ item }: { item: Task }) => {
+      const startTime = new Date(item.starts_at).toLocaleTimeString();
+      return (
+        <View style={styles.taskItem}>
+          <Text style={styles.title}>{item.title}</Text>
+          <Text style={styles.startTime}>Starts at: {startTime}</Text>
+        </View>
+      );
+    },
+    [] // Only need to re-render when tasks change
+  );
 
   return (
     <View style={styles.container}>
@@ -165,12 +134,15 @@ const TimeSlot = ({ roomId }) => {
             data={tasks}
             renderItem={renderItem}
             keyExtractor={(item) => item.id}
-            initialNumToRender={10}
-            maxToRenderPerBatch={10}
-            windowSize={5}
+            extraData={tasks} // Optimize re-renders by tracking task changes
           />
           <View style={styles.addTaskButton}>
-            <Button title="Get Next Task" onPress={fetchNextTask} />
+            <TouchableOpacity
+              style={commonStyles.button}
+              onPress={fetchNextTask}
+            >
+              <Text style={commonStyles.buttonText}>Get Next Task</Text>
+            </TouchableOpacity>
           </View>
         </>
       ) : (
@@ -194,10 +166,10 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
     marginVertical: 10,
-    color: "#333",
+    fontSize: 24,
+    fontWeight: "bold",
+    fontStyle: "italic",
   },
   addTaskButton: {
     paddingTop: 20,
@@ -206,7 +178,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginVertical: 10,
     marginHorizontal: 5,
-    backgroundColor: "#ccc",
+    backgroundColor: "#eee",
     borderRadius: 8,
   },
   title: {
@@ -219,4 +191,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default TimeSlot;
+export default React.memo(TimeSlot);

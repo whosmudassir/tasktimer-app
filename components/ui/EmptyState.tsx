@@ -1,8 +1,24 @@
-import commonStyles from "@/styles/commonStyles";
 import React from "react";
-import { View, Text, Button, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import commonStyles from "@/styles/commonStyles";
 
-export default function EmptyState({ title, description, actionButton }) {
+// Define types for the props
+interface ActionButton {
+  title: string;
+  onPress: () => void;
+}
+
+interface EmptyStateProps {
+  title: string;
+  description: string;
+  actionButton?: ActionButton; // Optional button prop
+}
+
+const EmptyState: React.FC<EmptyStateProps> = ({
+  title,
+  description,
+  actionButton,
+}) => {
   return (
     <View style={styles.emptyState}>
       <Text style={styles.title}>{title}</Text>
@@ -17,7 +33,7 @@ export default function EmptyState({ title, description, actionButton }) {
       )}
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   emptyState: {
@@ -38,3 +54,5 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 });
+
+export default EmptyState;

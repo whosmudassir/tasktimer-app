@@ -30,7 +30,7 @@ const LoginScreen = () => {
   const handleLogin = async () => {
     try {
       setError(""); // Clear previous errors
-      await login(username, password); // Call the login function in Zustand
+      await login("mavehealth", "0Eq2LjfABRY95"); // Call the login function in Zustand
       console.log("Login successful");
       // Navigate to the home screen or protected route
     } catch (err) {
@@ -81,7 +81,7 @@ const LoginScreen = () => {
                 opacity: isButtonDisabled ? 0.5 : 1,
               }}
               onPress={handleLogin}
-              disabled={isButtonDisabled}
+              // disabled={isButtonDisabled}
             >
               <Text style={commonStyles.buttonText}>LOGIN</Text>
             </TouchableOpacity>

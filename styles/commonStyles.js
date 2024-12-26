@@ -23,10 +23,10 @@ const commonStyles = StyleSheet.create({
   },
   logoContainer: {
     backgroundColor: "#fff",
-    marginTop: 15,
+    marginTop: 0,
     borderRadius: 10,
     marginBottom: 5,
-    padding: 10,
+    padding: 0,
   },
   logo: {
     width: 150, // Adjust the width as needed

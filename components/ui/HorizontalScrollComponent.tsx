@@ -1,4 +1,4 @@
-import React from "react";
+import React, { FC, useCallback } from "react";
 import {
   FlatList,
   Text,
@@ -7,7 +7,29 @@ import {
   StyleSheet,
 } from "react-native";
 
-const HorizontalScrollComponent = ({ data, onPress, selectedRoom }) => {
+import { Room, HorizontalScrollComponentProps } from "@/types";
+
+const HorizontalScrollComponent: FC<HorizontalScrollComponentProps> = ({
+  data,
+  onPress,
+  selectedRoom,
+}) => {
+  // Memoize the render of each item to optimize performance
+  const renderItem = useCallback(
+    ({ item }: { item: Room }) => (
+      <TouchableOpacity
+        style={[
+          styles.itemContainer,
+          item.id !== selectedRoom && styles.dimmedItem, // Dim non-selected items
+        ]}
+        onPress={() => onPress(item)}
+      >
+        <Text style={styles.text}>{item.name}</Text>
+      </TouchableOpacity>
+    ),
+    [onPress, selectedRoom] // Dependencies for memoization
+  );
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -16,17 +38,9 @@ const HorizontalScrollComponent = ({ data, onPress, selectedRoom }) => {
         keyExtractor={(item) => item.id}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.itemContainer,
-              item.id !== selectedRoom && styles.dimmedItem, // Dim non-selected items
-            ]}
-            onPress={() => onPress(item)}
-          >
-            <Text style={styles.text}>{item.name}</Text>
-          </TouchableOpacity>
-        )}
+        renderItem={renderItem}
+        // Optimize performance by memoizing FlatList rendering
+        extraData={selectedRoom}
       />
     </View>
   );
@@ -35,9 +49,10 @@ const HorizontalScrollComponent = ({ data, onPress, selectedRoom }) => {
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 10,
+    paddingHorizontal: 0,
   },
   contentContainer: {
-    paddingHorizontal: 10,
+    // paddingHorizontal: 10,
   },
   itemContainer: {
     padding: 10,
@@ -48,7 +63,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     minWidth: 110,
     borderWidth: 1, // Thickness of the border
-    borderColor: "#ccc", //
+    borderColor: "#ccc",
   },
   dimmedItem: {
     opacity: 0.5, // Dim the non-selected items
@@ -60,4 +75,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HorizontalScrollComponent;
+export default React.memo(HorizontalScrollComponent);
