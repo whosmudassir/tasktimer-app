@@ -20,8 +20,8 @@ import commonStyles from "../../styles/commonStyles";
 
 const LoginScreen = () => {
   const { login } = useAuthStore();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("mavehealth");
+  const [password, setPassword] = useState("0Eq2LjfABRY95");
   const [error, setError] = useState("");
 
   const handleLogin = async () => {
